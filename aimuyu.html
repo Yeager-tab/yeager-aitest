@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子木鱼</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .merit-counter {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .muyu-image {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .tap-animation {
+            animation: tap 0.2s ease;
+        }
+
+        @keyframes tap {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .floating-text {
+            position: fixed;
+            color: #f0ad4e;
+            font-size: 18px;
+            pointer-events: none;
+            animation: float 1s ease-out;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="merit-counter">功德值：<span id="meritCount">0</span></div>
+        <img 
+            id="muyuImage" 
+            class="muyu-image" 
+            src="https://raw.githubusercontent.com/your-username/your-repo/main/muyu.png" 
+            alt="木鱼"
+        >
+    </div>
+
+    <script>
+        let meritCount = 0;
+        const muyuImage = document.getElementById('muyuImage');
+        const meritCountElement = document.getElementById('meritCount');
+        const audio = new Audio('https://raw.githubusercontent.com/your-username/your-repo/main/muyu.mp3');
+        audio.volume = 0.5;
+
+        // 从本地存储加载功德值
+        if (localStorage.getItem('meritCount')) {
+            meritCount = parseInt(localStorage.getItem('meritCount'));
+            meritCountElement.textContent = meritCount;
+        }
+
+        function createFloatingText(x, y) {
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.textContent = '功德 +1';
+            text.style.left = `${x}px`;
+            text.style.top = `${y}px`;
+            document.body.appendChild(text);
+
+            // 动画结束后移除元素
+            setTimeout(() => {
+                document.body.removeChild(text);
+            }, 1000);
+        }
+
+        muyuImage.addEventListener('click', (e) => {
+            // 播放音效
+            audio.currentTime = 0;
+            audio.play();
+
+            // 更新功德值
+            meritCount++;
+            meritCountElement.textContent = meritCount;
+            
+            // 保存到本地存储
+            localStorage.setItem('meritCount', meritCount);
+
+            // 添加点击动画
+            muyuImage.classList.add('tap-animation');
+            setTimeout(() => {
+                muyuImage.classList.remove('tap-animation');
+            }, 200);
+
+            // 显示浮动文字
+            createFloatingText(e.pageX, e.pageY);
+        });
+
+        // 添加触摸支持
+        muyuImage.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            muyuImage.click();
+            createFloatingText(touch.pageX, touch.pageY);
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- ... 原有的 head 内容 ... -->
+    <style>
+        /* ... 原有的样式 ... */
+
+        .control-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .speed-control {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: #f44336;
+        }
+
+        .toggle-btn:hover {
+            opacity: 0.9;
+        }
+
+        .speed-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        input[type="range"] {
+            width: 200px;
+        }
+
+        .current-speed {
+            min-width: 60px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ... 原有的木鱼和功德值显示 ... -->
+        
+        <div class="control-panel">
+            <button id="autoToggle" class="toggle-btn">开启自动敲击</button>
+            <div class="speed-control">
+                <span class="speed-label">速度：</span>
+                <input 
+                    type="range" 
+                    id="speedControl" 
+                    min="0.1" 
+                    max="10" 
+                    step="0.1" 
+                    value="1"
+                >
+                <span id="speedValue" class="current-speed">1.0次/秒</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ... 原有的变量声明 ...
+        
+        let autoClickInterval = null;
+        let isAutoClicking = false;
+        const autoToggleBtn = document.getElementById('autoToggle');
+        const speedControl = document.getElementById('speedControl');
+        const speedValue = document.getElementById('speedValue');
+
+        // 自动点击函数
+        function autoClick() {
+            const event = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                clientX: muyuImage.offsetLeft + muyuImage.width / 2,
+                clientY: muyuImage.offsetTop + muyuImage.height / 2
+            });
+            muyuImage.dispatchEvent(event);
+        }
+
+        // 更新自动点击状态
+        function updateAutoClick() {
+            if (isAutoClicking) {
+                const speed = parseFloat(speedControl.value);
+                const interval = 1000 / speed;
+                
+                if (autoClickInterval) {
+                    clearInterval(autoClickInterval);
+                }
+                
+                autoClickInterval = setInterval(autoClick, interval);
+            } else {
+                if (autoClickInterval) {
+                    clearInterval(autoClickInterval);
+                    autoClickInterval = null;
+                }
+            }
+        }
+
+        // 切换自动点击
+        autoToggleBtn.addEventListener('click', () => {
+            isAutoClicking = !isAutoClicking;
+            autoToggleBtn.textContent = isAutoClicking ? '关闭自动敲击' : '开启自动敲击';
+            autoToggleBtn.classList.toggle('active', isAutoClicking);
+            updateAutoClick();
+        });
+
+        // 速度控制
+        speedControl.addEventListener('input', (e) => {
+            const speed = parseFloat(e.target.value);
+            speedValue.textContent = `${speed.toFixed(1)}次/秒`;
+            if (isAutoClicking) {
+                updateAutoClick();
+            }
+        });
+
+        // 页面关闭或切换时清理定时器
+        window.addEventListener('beforeunload', () => {
+            if (autoClickInterval) {
+                clearInterval(autoClickInterval);
+            }
+        });
+
+        // 页面不可见时暂停自动点击
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && autoClickInterval) {
+                clearInterval(autoClickInterval);
+            } else if (!document.hidden && isAutoClicking) {
+                updateAutoClick();
+            }
+        });
+    </script>
+</body>
+</html> 
